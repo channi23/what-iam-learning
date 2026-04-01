@@ -1,14 +1,11 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { JwtService } from './jwt.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private service: PrismaService,
-    private jwtService: JwtService,
-  ) {}
+  constructor(private service: PrismaService, private jwtService:JwtService) {}
 
   async register(name: string, email: string, password: string) {
     const exists = await this.service.user.findUnique({
@@ -30,10 +27,10 @@ export class AuthService {
       },
     });
 
-    return this.createTokens(user.id, user.email, user.name);
+    return this.toUserResponse(user);
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string):Promise<{access_token:String}> {
     const user = await this.service.user.findUnique({
       where: { email },
     });
@@ -47,45 +44,19 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.createTokens(user.id, user.email, user.name);
-  }
-
-  async refresh(refreshToken: string) {
-    const payload = this.jwtService.verifyRefreshToken(refreshToken);
-    const user = await this.service.user.findUnique({
-      where: { email: payload.email },
-    });
-
-    if (!user || !user.refreshToken) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    const validRefreshToken = await bcrypt.compare(refreshToken, user.refreshToken);
-    if (!validRefreshToken) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
-
-    return this.createTokens(user.id, user.email, user.name);
-  }
-
-  private async createTokens(id: number, email: string, name: string | null) {
-    const accessToken = this.jwtService.signAccessToken(id, email);
-    const refreshToken = this.jwtService.signRefreshToken(id, email);
-    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
-
-    await this.service.user.update({
-      where: { id },
-      data: { refreshToken: refreshTokenHash },
-    });
+    const payload = {sub:user.id, email:user.email};
 
     return {
-      user: {
-        id,
-        email,
-        name,
-      },
-      accessToken,
-      refreshToken,
+      access_token: await this.jwtService.signAsync(payload,{expiresIn:'15m'})
+    };
+    
+  }
+
+  private toUserResponse(user: { id: number; email: string; name: string | null }) {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
     };
   }
 }

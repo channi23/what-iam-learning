@@ -21,9 +21,4 @@ export class AuthController {
   ) {
     return this.service.login(email, password);
   }
-
-  @Post('refresh')
-  refresh(@Body('refreshToken') refreshToken: string) {
-    return this.service.refresh(refreshToken);
-  }
 }
