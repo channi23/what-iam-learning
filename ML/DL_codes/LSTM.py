@@ -8,7 +8,6 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Embedding, LSTM, Dense
 
-# Sample dataset (text + labels)
 texts = [
     "Breaking news government announces new policy",
     "Celebrity caught in shocking scandal",
