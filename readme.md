@@ -9,7 +9,7 @@
 ## PHASE 0 — Rules of the Game (Read Once)
 
 - Use **official documentation only**
-- ❌ No ChatGPT / Copilot / AI tools while learning
+-  No ChatGPT / Copilot / AI tools while learning
 - Google errors, read GitHub issues, read specs
 - If stuck → re-read docs, simplify, retry
 
@@ -73,7 +73,7 @@
   - Parse request body manually
   - Send JSON responses
 
-📌 **Rule:** If you can’t explain the event loop on paper → don’t move on.
+**Rule:** If you can’t explain the event loop on paper → don’t move on.
 
 ---
 
@@ -118,10 +118,10 @@
   - Strict response format
 
 - Convert the same project to **TypeScript**:
-  - ❌ No `any`
+  -  No `any`
   - Proper DTO types
 
-📌 **Rule:** If your API responses are inconsistent → redo.
+ **Rule:** If your API responses are inconsistent → redo.
 
 ---
 
@@ -173,9 +173,9 @@
 - Refactor code to ensure:
   - Controllers = thin
   - Services = business logic
-  - ❌ No business logic in controllers
+  -  No business logic in controllers
 
-📌 **Rule:** If your controllers are fat → refactor.
+ **Rule:** If your controllers are fat → refactor.
 
 ---
 
@@ -230,7 +230,7 @@
   - Service-level tests
   - API-level tests
 
-📌 **Rule:** If deleting data breaks your app → schema is wrong.
+ **Rule:** If deleting data breaks your app → schema is wrong.
 
 ---
 
@@ -266,7 +266,7 @@
   - Loading states
   - Error boundaries
 
-📌 **Rule:** Ugly UI is fine. Broken UX is not.
+ **Rule:** Ugly UI is fine. Broken UX is not.
 
 ---
 
@@ -311,7 +311,7 @@
   - Guard checks
   - Persistence guarantees
 
-📌 **Rule:** If a server restart breaks logic → redesign.
+**Rule:** If a server restart breaks logic → redesign.
 
 ---
 
