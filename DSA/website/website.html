@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Grind — Personal Study Bible</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080a10;
+  --surface: #0e1018;
+  --card: #131520;
+  --border: #1e2235;
+  --accent: #7c6dfa;
+  --accent2: #00e5b0;
+  --accent3: #ff5f7e;
+  --accent4: #f5a623;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --easy: #22c55e;
+  --med: #f59e0b;
+  --hard: #ef4444;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;overflow-x:hidden}
+
+/* NOISE OVERLAY */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.4}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,10,16,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--accent);letter-spacing:.05em}
+.nav-links{display:flex;gap:6px;flex-wrap:wrap}
+.nav-links a{color:var(--muted);font-size:.68rem;text-decoration:none;padding:4px 10px;border-radius:4px;border:1px solid transparent;transition:.2s;letter-spacing:.05em}
+.nav-links a:hover{color:var(--text);border-color:var(--border)}
+.nav-links a.active{color:var(--accent);border-color:var(--accent)}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:80px 24px 40px;position:relative;text-align:center}
+.hero-badge{font-size:.7rem;letter-spacing:.15em;color:var(--accent2);border:1px solid var(--accent2);padding:4px 14px;border-radius:100px;margin-bottom:24px;display:inline-block;animation:fadeUp .6s ease both}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(3rem,8vw,7rem);font-weight:800;line-height:.95;letter-spacing:-.03em;margin-bottom:20px;animation:fadeUp .6s .1s ease both}
+.hero h1 span{color:var(--accent)}
+.hero-sub{font-size:.85rem;color:var(--muted);max-width:560px;line-height:1.8;animation:fadeUp .6s .2s ease both}
+.hero-stats{display:flex;gap:40px;margin-top:48px;animation:fadeUp .6s .3s ease both}
+.stat{text-align:center}
+.stat-num{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:var(--text)}
+.stat-label{font-size:.65rem;color:var(--muted);letter-spacing:.1em;margin-top:2px}
+.scroll-hint{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);animation:bounce 2s infinite;color:var(--muted);font-size:.7rem;letter-spacing:.1em}
+
+/* SEQUENCE TRACK */
+.sequence{padding:60px 24px;max-width:900px;margin:0 auto}
+.seq-title{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:32px;color:var(--text)}
+.seq-title span{color:var(--accent)}
+.track{position:relative;padding-left:32px}
+.track::before{content:'';position:absolute;left:11px;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,var(--accent),var(--accent2),var(--accent3),var(--accent4),var(--accent))}
+.track-item{position:relative;margin-bottom:12px;cursor:pointer}
+.track-item::before{content:'';position:absolute;left:-26px;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;border:2px solid var(--accent);background:var(--bg);transition:.3s}
+.track-item:hover::before{background:var(--accent)}
+.track-item.done::before{background:var(--easy);border-color:var(--easy)}
+.track-item.active::before{background:var(--accent);box-shadow:0 0 12px var(--accent)}
+.track-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:16px;transition:.2s}
+.track-card:hover{border-color:var(--accent);transform:translateX(4px)}
+.track-num{font-size:.7rem;color:var(--muted);min-width:28px}
+.track-name{font-size:.85rem;font-weight:500;flex:1}
+.track-time{font-size:.7rem;color:var(--accent2);background:rgba(0,229,176,.08);padding:3px 10px;border-radius:100px}
+.track-tag{font-size:.65rem;padding:2px 8px;border-radius:4px;font-weight:600}
+.tag-dsa{background:rgba(124,109,250,.15);color:var(--accent)}
+.tag-dev{background:rgba(0,229,176,.1);color:var(--accent2)}
+.tag-sys{background:rgba(245,166,35,.1);color:var(--accent4)}
+.tag-ml{background:rgba(255,95,126,.1);color:var(--accent3)}
+.tag-cs{background:rgba(148,163,184,.1);color:var(--muted)}
+
+/* SECTIONS */
+.section{padding:60px 24px;max-width:1100px;margin:0 auto}
+.section-header{margin-bottom:40px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.section-eyebrow{font-size:.65rem;letter-spacing:.2em;margin-bottom:8px}
+.section-title{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;line-height:1}
+.section-desc{font-size:.8rem;color:var(--muted);margin-top:8px;line-height:1.8}
+
+/* TOPIC GRID */
+.topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.topic-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:.25s}
+.topic-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,109,250,.1)}
+.topic-card-header{padding:16px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.topic-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.topic-card-title{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700}
+.topic-card-sub{font-size:.68rem;color:var(--muted);margin-top:2px}
+.patterns-list{padding:12px 18px}
+.pattern-row{padding:8px 0;border-bottom:1px solid rgba(30,34,53,.8);display:flex;flex-direction:column;gap:4px}
+.pattern-row:last-child{border-bottom:none}
+.pattern-name{font-size:.78rem;font-weight:600;color:var(--text)}
+.pattern-when{font-size:.68rem;color:var(--muted);line-height:1.5}
+.problems-mini{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.prob-chip{font-size:.62rem;padding:2px 7px;border-radius:100px;border:1px solid;cursor:default}
+.prob-easy{border-color:rgba(34,197,94,.3);color:var(--easy);background:rgba(34,197,94,.05)}
+.prob-med{border-color:rgba(245,158,11,.3);color:var(--med);background:rgba(245,158,11,.05)}
+.prob-hard{border-color:rgba(239,68,68,.3);color:var(--hard);background:rgba(239,68,68,.05)}
+
+/* CS TOPICS TABLE */
+.cs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.cs-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;transition:.2s}
+.cs-card:hover{border-color:var(--accent2);transform:translateY(-2px)}
+.cs-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.cs-card-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;color:var(--text)}
+.cs-time{font-size:.68rem;color:var(--accent2);background:rgba(0,229,176,.08);padding:3px 10px;border-radius:100px;white-space:nowrap}
+.cs-resources{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.cs-resource{font-size:.7rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.cs-resource::before{content:'▸';color:var(--accent2);font-size:.6rem}
+.cs-subtopics{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.cs-sub{font-size:.62rem;padding:2px 8px;border-radius:4px;background:rgba(30,34,53,.8);color:var(--muted);border:1px solid var(--border)}
+
+/* ML PHASES */
+.ml-phase{margin-bottom:32px}
+.ml-phase-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--accent3);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.ml-phase-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,rgba(255,95,126,.3),transparent)}
+.ml-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.ml-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;transition:.2s}
+.ml-card:hover{border-color:var(--accent3);transform:translateY(-2px)}
+.ml-card-title{font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:6px}
+.ml-card-time{font-size:.65rem;color:var(--accent4);margin-bottom:8px}
+.ml-items{display:flex;flex-direction:column;gap:3px}
+.ml-item{font-size:.7rem;color:var(--muted);padding-left:12px;position:relative;line-height:1.5}
+.ml-item::before{content:'·';position:absolute;left:2px;color:var(--accent3)}
+
+/* SYSTEM DESIGN */
+.sd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.sd-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:.2s}
+.sd-card:hover{border-color:var(--accent4);transform:translateY(-2px)}
+.sd-card-header{padding:14px 16px;background:linear-gradient(135deg,rgba(245,166,35,.08),transparent);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.sd-card-title{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700}
+.sd-card-body{padding:14px 16px}
+.sd-concept{font-size:.72rem;color:var(--muted);line-height:1.7}
+.sd-resources{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px}
+.sd-res{font-size:.62rem;padding:2px 8px;border-radius:4px;background:rgba(245,166,35,.06);color:var(--accent4);border:1px solid rgba(245,166,35,.2)}
+
+/* FOOTER */
+footer{padding:40px 24px;text-align:center;border-top:1px solid var(--border);color:var(--muted);font-size:.7rem}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* section divider */
+.divider{height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:0 24px}
+
+/* progress bar */
+.progress-bar{height:3px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;background:linear-gradient(to right,var(--accent),var(--accent2))}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">THE GRIND</div>
+  <div class="nav-links">
+    <a href="#sequence" class="active">Sequence</a>
+    <a href="#dsa">DSA</a>
+    <a href="#cs">CS Core</a>
+    <a href="#sysdesign">System Design</a>
+    <a href="#ml">ML/Math</a>
+    <a href="#dev">Dev Path</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">PERSONAL · PRIVATE · SEQUENTIAL</div>
+  <h1>THE<br><span>GRIND</span><br>BIBLE</h1>
+  <p class="hero-sub">Every topic. Every pattern. Every problem. In the exact order you need to learn them. Built for one person.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">22</div><div class="stat-label">DSA PATTERNS</div></div>
+    <div class="stat"><div class="stat-num">90+</div><div class="stat-label">PROBLEMS</div></div>
+    <div class="stat"><div class="stat-num">10</div><div class="stat-label">MONTHS</div></div>
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">PHASES</div></div>
+  </div>
+  <div class="scroll-hint">↓ SCROLL</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- MASTER SEQUENCE -->
+<section class="section" id="sequence">
+  <div class="section-header">
+    <div class="section-eyebrow" style="color:var(--accent)">STEP 01</div>
+    <div class="section-title">MASTER <span style="color:var(--accent)">SEQUENCE</span></div>
+    <div class="section-desc">Everything in order. Do not skip ahead. Each block builds on the last.</div>
+  </div>
+  <div class="track">
+
+    <div class="track-item done">
+      <div class="track-card">
+        <span class="track-num">01</span>
+        <span class="track-name">Arrays & Hashing — Patterns + Problems</span>
+        <span class="track-time">3–4 days</span>
+        <span class="track-tag tag-dsa">DSA</span>
+      </div>
+    </div>
+
+    <div class="track-item active">
+      <div class="track-card">
+        <span class="track-num">02</span>
+        <span class="track-name">Recursion — All Patterns + Backtracking</span>
+        <span class="track-time">3–4 days</span>
+        <span class="track-tag tag-dsa">DSA</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">03</span>
+        <span class="track-name">Sliding Window & Two Pointers</span>
+        <span class="track-time">2–3 days</span>
+        <span class="track-tag tag-dsa">DSA</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">04</span>
+        <span class="track-name">Stacks & Queues — Monotonic + Deque</span>
+        <span class="track-time">2–3 days</span>
+        <span class="track-tag tag-dsa">DSA</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">05</span>
+        <span class="track-name">Linked Lists — All Pointer Patterns</span>
+        <span class="track-time">2 days</span>
+        <span class="track-tag tag-dsa">DSA</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">06</span>
+        <span class="track-name">Binary Search — All Variants</span>
+        <span class="track-time">2–3 days</span>
+        <span class="track-tag tag-dsa">DSA</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">07</span>
+        <span class="track-name">Trees — DFS/BFS/BST/LCA Patterns</span>
+        <span class="track-time">4–5 days</span>
+        <span class="track-tag tag-dsa">DSA</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">08</span>
+        <span class="track-name">Heaps & Priority Queues</span>
+        <span class="track-time">2 days</span>
+        <span class="track-tag tag-dsa">DSA</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">09</span>
+        <span class="track-name">Graphs — DFS, BFS, Topo, Union Find, Dijkstra</span>
+        <span class="track-time">5–6 days</span>
+        <span class="track-tag tag-dsa">DSA</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">10</span>
+        <span class="track-name">Dynamic Programming — All DP Patterns</span>
+        <span class="track-time">7–10 days</span>
+        <span class="track-tag tag-dsa">DSA</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">11</span>
+        <span class="track-name">Trie + Greedy + Strings (final DSA)</span>
+        <span class="track-time">3–4 days</span>
+        <span class="track-tag tag-dsa">DSA</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">12</span>
+        <span class="track-name">OS — Processes, Threads, Memory, Scheduling</span>
+        <span class="track-time">1 week</span>
+        <span class="track-tag tag-cs">CS</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">13</span>
+        <span class="track-name">DBMS — ACID, Indexing, Transactions, NoSQL</span>
+        <span class="track-time">1 week</span>
+        <span class="track-tag tag-cs">CS</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">14</span>
+        <span class="track-name">Computer Networks — TCP/IP, HTTP, DNS, TLS</span>
+        <span class="track-time">1 week</span>
+        <span class="track-tag tag-cs">CS</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">15</span>
+        <span class="track-name">OOP & Design Patterns (GoF)</span>
+        <span class="track-time">5 days</span>
+        <span class="track-tag tag-cs">CS</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">16</span>
+        <span class="track-name">System Design — Foundations (CAP, Scaling, Load)</span>
+        <span class="track-time">2 weeks</span>
+        <span class="track-tag tag-sys">SYS</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">17</span>
+        <span class="track-name">System Design — Case Studies (URL, Twitter, YT...)</span>
+        <span class="track-time">2 weeks</span>
+        <span class="track-tag tag-sys">SYS</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">18</span>
+        <span class="track-name">ML Math — Linear Algebra, Calculus, Probability</span>
+        <span class="track-time">2 weeks</span>
+        <span class="track-tag tag-ml">ML</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">19</span>
+        <span class="track-name">ML Core — Supervised, Unsupervised, Evaluation</span>
+        <span class="track-time">2 weeks</span>
+        <span class="track-tag tag-ml">ML</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">20</span>
+        <span class="track-name">Deep Learning — NNs, CNNs, RNNs, Transformers</span>
+        <span class="track-time">3 weeks</span>
+        <span class="track-tag tag-ml">ML</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">21</span>
+        <span class="track-name">Dev Path — NestJS → Rust → RAG → Agents → K8s</span>
+        <span class="track-time">10 months parallel</span>
+        <span class="track-tag tag-dev">DEV</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DSA SECTION -->
+<section class="section" id="dsa">
+  <div class="section-header">
+    <div class="section-eyebrow" style="color:var(--accent)">STEP 02</div>
+    <div class="section-title" style="color:var(--accent)">DSA PATTERNS</div>
+    <div class="section-desc">All topics from your sheet. Every pattern with problems Easy → Hard. LC = LeetCode, CF = Codeforces.</div>
+  </div>
+  <div class="topic-grid">
+
+    <!-- ARRAYS & HASHING -->
+    <div class="topic-card">
+      <div class="topic-card-header">
+        <div class="topic-icon" style="background:rgba(124,109,250,.1);color:var(--accent)">①</div>
+        <div><div class="topic-card-title">Arrays & Hashing</div><div class="topic-card-sub">8 patterns · ~50 problems</div></div>
+      </div>
+      <div class="patterns-list">
+
+        <div class="pattern-row">
+          <div class="pattern-name">P1 · Prefix Sum</div>
+          <div class="pattern-when">Range sum O(1), subarray sum = K, equilibrium</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 1480</span>
+            <span class="prob-chip prob-easy">LC 724</span>
+            <span class="prob-chip prob-med">LC 560</span>
+            <span class="prob-chip prob-med">LC 238</span>
+            <span class="prob-chip prob-hard">LC 327</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P2 · HashMap Counting</div>
+          <div class="pattern-when">Frequency map, anagram check, top-K elements</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 242</span>
+            <span class="prob-chip prob-easy">LC 383</span>
+            <span class="prob-chip prob-med">LC 347</span>
+            <span class="prob-chip prob-med">LC 128</span>
+            <span class="prob-chip prob-hard">LC 992</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P3 · Two Sum Variants</div>
+          <div class="pattern-when">HashMap complement lookup, pairs, triplets</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 1</span>
+            <span class="prob-chip prob-med">LC 167</span>
+            <span class="prob-chip prob-med">LC 15</span>
+            <span class="prob-chip prob-med">LC 18</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P4 · Kadane's Algorithm</div>
+          <div class="pattern-when">Max subarray sum, max product, circular variant</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 121</span>
+            <span class="prob-chip prob-med">LC 53</span>
+            <span class="prob-chip prob-med">LC 152</span>
+            <span class="prob-chip prob-med">LC 918</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P5 · Sort + Sweep</div>
+          <div class="pattern-when">Merge intervals, non-overlapping, meeting rooms</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 56</span>
+            <span class="prob-chip prob-med">LC 435</span>
+            <span class="prob-chip prob-med">LC 75</span>
+            <span class="prob-chip prob-med">LC 452</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P6 · Bucket / Counting Sort</div>
+          <div class="pattern-when">Missing/duplicate, bounded values, top-K</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 448</span>
+            <span class="prob-chip prob-med">LC 287</span>
+            <span class="prob-chip prob-hard">LC 41</span>
+            <span class="prob-chip prob-hard">LC 220</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P7 · Group By Key</div>
+          <div class="pattern-when">Hash by derived key, anagram groups, isomorphic</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 205</span>
+            <span class="prob-chip prob-med">LC 49</span>
+            <span class="prob-chip prob-med">LC 249</span>
+            <span class="prob-chip prob-med">LC 554</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P8 · Matrix Traversal</div>
+          <div class="pattern-when">Direction arrays, visited tracking, spiral, islands</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 54</span>
+            <span class="prob-chip prob-med">LC 48</span>
+            <span class="prob-chip prob-med">LC 200</span>
+            <span class="prob-chip prob-hard">LC 363</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RECURSION -->
+    <div class="topic-card">
+      <div class="topic-card-header">
+        <div class="topic-icon" style="background:rgba(255,95,126,.1);color:var(--accent3)">②</div>
+        <div><div class="topic-card-title">Recursion & Backtracking</div><div class="topic-card-sub">7 patterns · ~45 problems</div></div>
+      </div>
+      <div class="patterns-list">
+
+        <div class="pattern-row">
+          <div class="pattern-name">P1 · Linear Recursion</div>
+          <div class="pattern-when">Factorial, power, reverse, palindrome check</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 231</span>
+            <span class="prob-chip prob-easy">LC 344</span>
+            <span class="prob-chip prob-med">LC 50</span>
+            <span class="prob-chip prob-med">LC 779</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P2 · Divide & Conquer</div>
+          <div class="pattern-when">Merge sort, closest pair, inversion count</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 912</span>
+            <span class="prob-chip prob-hard">LC 315</span>
+            <span class="prob-chip prob-hard">LC 493</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P3 · Backtracking – Subsets</div>
+          <div class="pattern-when">Include/exclude each element, power set</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 78</span>
+            <span class="prob-chip prob-med">LC 90</span>
+            <span class="prob-chip prob-med">LC 416</span>
+            <span class="prob-chip prob-med">LC 698</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P4 · Backtracking – Permutations</div>
+          <div class="pattern-when">Swap/mark visited, next permutation</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 46</span>
+            <span class="prob-chip prob-med">LC 47</span>
+            <span class="prob-chip prob-hard">LC 60</span>
+            <span class="prob-chip prob-med">LC 526</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P5 · Backtracking – Combinations</div>
+          <div class="pattern-when">Pick k from n, combination sum, phone letters</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 77</span>
+            <span class="prob-chip prob-med">LC 39</span>
+            <span class="prob-chip prob-med">LC 40</span>
+            <span class="prob-chip prob-med">LC 17</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P6 · Constraint Satisfaction</div>
+          <div class="pattern-when">Place → check constraint → recurse → undo</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-hard">LC 51</span>
+            <span class="prob-chip prob-hard">LC 37</span>
+            <span class="prob-chip prob-med">LC 79</span>
+            <span class="prob-chip prob-hard">LC 212</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P7 · Memoized Recursion (Top-Down DP)</div>
+          <div class="pattern-when">Cache overlapping subproblems in dict</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 70</span>
+            <span class="prob-chip prob-med">LC 322</span>
+            <span class="prob-chip prob-med">LC 139</span>
+            <span class="prob-chip prob-hard">LC 312</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SLIDING WINDOW -->
+    <div class="topic-card">
+      <div class="topic-card-header">
+        <div class="topic-icon" style="background:rgba(0,229,176,.1);color:var(--accent2)">③</div>
+        <div><div class="topic-card-title">Sliding Window & Two Pointers</div><div class="topic-card-sub">7 patterns · ~45 problems</div></div>
+      </div>
+      <div class="patterns-list">
+
+        <div class="pattern-row">
+          <div class="pattern-name">P1 · Fixed-Size Window</div>
+          <div class="pattern-when">Max/min/avg every k-size, anagrams in string</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 643</span>
+            <span class="prob-chip prob-med">LC 438</span>
+            <span class="prob-chip prob-med">LC 567</span>
+            <span class="prob-chip prob-hard">LC 239</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P2 · Variable Window (Shrink)</div>
+          <div class="pattern-when">Expand right, shrink left on violation</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 3</span>
+            <span class="prob-chip prob-med">LC 209</span>
+            <span class="prob-chip prob-med">LC 904</span>
+            <span class="prob-chip prob-med">LC 424</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P3 · Window + HashMap</div>
+          <div class="pattern-when">Track have vs need counts in hashmap</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-hard">LC 76</span>
+            <span class="prob-chip prob-hard">LC 30</span>
+            <span class="prob-chip prob-med">LC 1838</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P4 · Two Pointers – Opposite Ends</div>
+          <div class="pattern-when">Sorted pair sum, trapping water, palindrome</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 125</span>
+            <span class="prob-chip prob-med">LC 11</span>
+            <span class="prob-chip prob-med">LC 15</span>
+            <span class="prob-chip prob-hard">LC 42</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P5 · Two Pointers – Fast/Slow</div>
+          <div class="pattern-when">Remove dups in-place, move zeros, linked cycle</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 26</span>
+            <span class="prob-chip prob-easy">LC 283</span>
+            <span class="prob-chip prob-med">LC 80</span>
+            <span class="prob-chip prob-med">LC 763</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P6 · Three Pointers</div>
+          <div class="pattern-when">Dutch flag, 3Sum, 3-way partition</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 88</span>
+            <span class="prob-chip prob-med">LC 75</span>
+            <span class="prob-chip prob-med">LC 16</span>
+            <span class="prob-chip prob-med">LC 18</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P7 · Binary Search on Answer</div>
+          <div class="pattern-when">BS on answer, validate with window</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 875</span>
+            <span class="prob-chip prob-med">LC 1011</span>
+            <span class="prob-chip prob-hard">LC 410</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- STACKS & QUEUES -->
+    <div class="topic-card">
+      <div class="topic-card-header">
+        <div class="topic-icon" style="background:rgba(245,166,35,.1);color:var(--accent4)">④</div>
+        <div><div class="topic-card-title">Stacks & Queues</div><div class="topic-card-sub">5 patterns · ~35 problems</div></div>
+      </div>
+      <div class="patterns-list">
+
+        <div class="pattern-row">
+          <div class="pattern-name">P1 · Monotonic Stack (Decreasing)</div>
+          <div class="pattern-when">Next greater element, largest rectangle, stock span</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 496</span>
+            <span class="prob-chip prob-med">LC 739</span>
+            <span class="prob-chip prob-hard">LC 84</span>
+            <span class="prob-chip prob-hard">LC 85</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P2 · Monotonic Stack (Increasing)</div>
+          <div class="pattern-when">Next smaller, sum of subarray minimums</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 907</span>
+            <span class="prob-chip prob-hard">LC 42</span>
+            <span class="prob-chip prob-hard">LC 1130</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P3 · Stack for Parsing</div>
+          <div class="pattern-when">Valid brackets, evaluate expression, decode string</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 20</span>
+            <span class="prob-chip prob-med">LC 394</span>
+            <span class="prob-chip prob-hard">LC 224</span>
+            <span class="prob-chip prob-hard">LC 726</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P4 · Monotonic Deque (Sliding Window Max)</div>
+          <div class="pattern-when">Window max/min in O(n), jump game</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-hard">LC 239</span>
+            <span class="prob-chip prob-hard">LC 862</span>
+            <span class="prob-chip prob-hard">LC 1425</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P5 · BFS with Queue</div>
+          <div class="pattern-when">Level order, shortest path unweighted, word ladder</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 102</span>
+            <span class="prob-chip prob-med">LC 127</span>
+            <span class="prob-chip prob-med">LC 994</span>
+            <span class="prob-chip prob-hard">LC 126</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- LINKED LISTS -->
+    <div class="topic-card">
+      <div class="topic-card-header">
+        <div class="topic-icon" style="background:rgba(124,109,250,.1);color:var(--accent)">⑤</div>
+        <div><div class="topic-card-title">Linked Lists</div><div class="topic-card-sub">5 patterns · ~30 problems</div></div>
+      </div>
+      <div class="patterns-list">
+
+        <div class="pattern-row">
+          <div class="pattern-name">P1 · Fast & Slow Pointers</div>
+          <div class="pattern-when">Cycle detect, middle of list, nth from end</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 141</span>
+            <span class="prob-chip prob-med">LC 142</span>
+            <span class="prob-chip prob-easy">LC 876</span>
+            <span class="prob-chip prob-med">LC 19</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P2 · Reverse Linked List</div>
+          <div class="pattern-when">Full reverse, reverse k-group, palindrome LL</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 206</span>
+            <span class="prob-chip prob-med">LC 92</span>
+            <span class="prob-chip prob-hard">LC 25</span>
+            <span class="prob-chip prob-med">LC 234</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P3 · Merge & Sort</div>
+          <div class="pattern-when">Merge two sorted, merge k lists, sort list</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 21</span>
+            <span class="prob-chip prob-hard">LC 23</span>
+            <span class="prob-chip prob-med">LC 148</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P4 · Dummy Head Trick</div>
+          <div class="pattern-when">Insert/delete, partition list, remove nth</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 86</span>
+            <span class="prob-chip prob-med">LC 82</span>
+            <span class="prob-chip prob-med">LC 328</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P5 · Two Lists Intersection</div>
+          <div class="pattern-when">Intersection node, add two numbers</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 160</span>
+            <span class="prob-chip prob-med">LC 2</span>
+            <span class="prob-chip prob-hard">LC 445</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- BINARY SEARCH -->
+    <div class="topic-card">
+      <div class="topic-card-header">
+        <div class="topic-icon" style="background:rgba(0,229,176,.1);color:var(--accent2)">⑥</div>
+        <div><div class="topic-card-title">Binary Search</div><div class="topic-card-sub">5 patterns · ~30 problems</div></div>
+      </div>
+      <div class="patterns-list">
+
+        <div class="pattern-row">
+          <div class="pattern-name">P1 · Classic Binary Search</div>
+          <div class="pattern-when">Exact target, first/last occurrence</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 704</span>
+            <span class="prob-chip prob-med">LC 34</span>
+            <span class="prob-chip prob-med">LC 33</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P2 · BS on Answer Space</div>
+          <div class="pattern-when">Minimize max / maximize min, feasibility check</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 875</span>
+            <span class="prob-chip prob-med">LC 1011</span>
+            <span class="prob-chip prob-hard">LC 410</span>
+            <span class="prob-chip prob-hard">LC 2064</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P3 · BS on Rotated Array</div>
+          <div class="pattern-when">Find min in rotated, search rotated</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 153</span>
+            <span class="prob-chip prob-med">LC 33</span>
+            <span class="prob-chip prob-hard">LC 154</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P4 · BS on 2D Matrix</div>
+          <div class="pattern-when">Treat matrix as sorted 1D array</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 74</span>
+            <span class="prob-chip prob-med">LC 240</span>
+            <span class="prob-chip prob-hard">LC 378</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P5 · Binary Search + Greedy</div>
+          <div class="pattern-when">Split array, allocate books, aggressive cows</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-hard">LC 410</span>
+            <span class="prob-chip prob-med">CF 1061D</span>
+            <span class="prob-chip prob-hard">LC 1482</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TREES -->
+    <div class="topic-card">
+      <div class="topic-card-header">
+        <div class="topic-icon" style="background:rgba(255,95,126,.1);color:var(--accent3)">⑦</div>
+        <div><div class="topic-card-title">Trees</div><div class="topic-card-sub">7 patterns · ~45 problems</div></div>
+      </div>
+      <div class="patterns-list">
+
+        <div class="pattern-row">
+          <div class="pattern-name">P1 · DFS Pre/In/Post Order</div>
+          <div class="pattern-when">Path sum, max depth, serialize/deserialize</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 104</span>
+            <span class="prob-chip prob-med">LC 112</span>
+            <span class="prob-chip prob-hard">LC 297</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P2 · BFS Level Order</div>
+          <div class="pattern-when">Level averages, right side view, zigzag</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 102</span>
+            <span class="prob-chip prob-med">LC 199</span>
+            <span class="prob-chip prob-med">LC 103</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P3 · BST Properties</div>
+          <div class="pattern-when">Validate BST, kth smallest, BST to sorted array</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 98</span>
+            <span class="prob-chip prob-med">LC 230</span>
+            <span class="prob-chip prob-med">LC 450</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P4 · LCA (Lowest Common Ancestor)</div>
+          <div class="pattern-when">LCA in BST and binary tree, distance between nodes</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 236</span>
+            <span class="prob-chip prob-med">LC 235</span>
+            <span class="prob-chip prob-hard">LC 1123</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P5 · Path Problems</div>
+          <div class="pattern-when">Max path sum, all root-to-leaf paths, sum = target</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 113</span>
+            <span class="prob-chip prob-hard">LC 124</span>
+            <span class="prob-chip prob-hard">LC 437</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P6 · Tree Construction</div>
+          <div class="pattern-when">Build from inorder+preorder, clone tree</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 105</span>
+            <span class="prob-chip prob-med">LC 106</span>
+            <span class="prob-chip prob-hard">LC 1028</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P7 · Trie (Prefix Tree)</div>
+          <div class="pattern-when">Word search, autocomplete, longest prefix</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 208</span>
+            <span class="prob-chip prob-med">LC 211</span>
+            <span class="prob-chip prob-hard">LC 212</span>
+            <span class="prob-chip prob-hard">LC 472</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- GRAPHS -->
+    <div class="topic-card">
+      <div class="topic-card-header">
+        <div class="topic-icon" style="background:rgba(245,166,35,.1);color:var(--accent4)">⑧</div>
+        <div><div class="topic-card-title">Graphs</div><div class="topic-card-sub">7 patterns · ~45 problems</div></div>
+      </div>
+      <div class="patterns-list">
+
+        <div class="pattern-row">
+          <div class="pattern-name">P1 · DFS – Connected Components</div>
+          <div class="pattern-when">Islands, regions, connected components count</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 200</span>
+            <span class="prob-chip prob-med">LC 695</span>
+            <span class="prob-chip prob-med">LC 130</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P2 · BFS – Shortest Path (Unweighted)</div>
+          <div class="pattern-when">Word ladder, 0/1 matrix, min steps</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 127</span>
+            <span class="prob-chip prob-med">LC 542</span>
+            <span class="prob-chip prob-hard">LC 126</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P3 · Topological Sort</div>
+          <div class="pattern-when">Course schedule, task ordering, alien dict</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 207</span>
+            <span class="prob-chip prob-med">LC 210</span>
+            <span class="prob-chip prob-hard">LC 269</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P4 · Union Find (DSU)</div>
+          <div class="pattern-when">Cycle detect undirected, redundant connection</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 547</span>
+            <span class="prob-chip prob-med">LC 684</span>
+            <span class="prob-chip prob-hard">LC 1202</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P5 · Dijkstra (Weighted Shortest)</div>
+          <div class="pattern-when">Network delay, cheapest flights, path with min effort</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 743</span>
+            <span class="prob-chip prob-med">LC 787</span>
+            <span class="prob-chip prob-hard">LC 1631</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P6 · Bellman-Ford / SPFA</div>
+          <div class="pattern-when">Negative weights, detect negative cycle</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 787</span>
+            <span class="prob-chip prob-hard">LC 743</span>
+            <span class="prob-chip prob-hard">CF 1342D</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P7 · Minimum Spanning Tree (Kruskal/Prim)</div>
+          <div class="pattern-when">Min cost to connect all nodes, cable wiring</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 1584</span>
+            <span class="prob-chip prob-hard">LC 1168</span>
+            <span class="prob-chip prob-hard">CF 1240C</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DYNAMIC PROGRAMMING -->
+    <div class="topic-card">
+      <div class="topic-card-header">
+        <div class="topic-icon" style="background:rgba(124,109,250,.1);color:var(--accent)">⑨</div>
+        <div><div class="topic-card-title">Dynamic Programming</div><div class="topic-card-sub">8 patterns · ~55 problems</div></div>
+      </div>
+      <div class="patterns-list">
+
+        <div class="pattern-row">
+          <div class="pattern-name">P1 · 1D DP (Linear)</div>
+          <div class="pattern-when">Climbing stairs, house robber, decode ways</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 70</span>
+            <span class="prob-chip prob-med">LC 198</span>
+            <span class="prob-chip prob-med">LC 91</span>
+            <span class="prob-chip prob-med">LC 139</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P2 · 0/1 Knapsack</div>
+          <div class="pattern-when">Partition equal sum, target sum, subset sum</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 416</span>
+            <span class="prob-chip prob-med">LC 494</span>
+            <span class="prob-chip prob-hard">LC 879</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P3 · Unbounded Knapsack</div>
+          <div class="pattern-when">Coin change, perfect squares, integer break</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 322</span>
+            <span class="prob-chip prob-med">LC 279</span>
+            <span class="prob-chip prob-med">LC 343</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P4 · 2D DP (Grid)</div>
+          <div class="pattern-when">Unique paths, min path sum, dungeon game</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 62</span>
+            <span class="prob-chip prob-med">LC 64</span>
+            <span class="prob-chip prob-hard">LC 174</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P5 · LCS / LIS Pattern</div>
+          <div class="pattern-when">Longest common subseq, longest increasing subseq</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 1143</span>
+            <span class="prob-chip prob-med">LC 300</span>
+            <span class="prob-chip prob-hard">LC 354</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P6 · Interval DP</div>
+          <div class="pattern-when">Burst balloons, matrix chain, strange printer</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-hard">LC 312</span>
+            <span class="prob-chip prob-hard">LC 1000</span>
+            <span class="prob-chip prob-hard">LC 664</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P7 · DP on Trees</div>
+          <div class="pattern-when">House robber III, binary tree cameras</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 337</span>
+            <span class="prob-chip prob-hard">LC 968</span>
+            <span class="prob-chip prob-hard">LC 2246</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P8 · Bitmask DP</div>
+          <div class="pattern-when">TSP, assign tasks, min XOR, cover all states</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-hard">LC 847</span>
+            <span class="prob-chip prob-hard">LC 1986</span>
+            <span class="prob-chip prob-hard">LC 1349</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- HEAPS -->
+    <div class="topic-card">
+      <div class="topic-card-header">
+        <div class="topic-icon" style="background:rgba(0,229,176,.1);color:var(--accent2)">⑩</div>
+        <div><div class="topic-card-title">Heaps & Priority Queues</div><div class="topic-card-sub">4 patterns · ~25 problems</div></div>
+      </div>
+      <div class="patterns-list">
+
+        <div class="pattern-row">
+          <div class="pattern-name">P1 · Top-K Pattern</div>
+          <div class="pattern-when">K largest/smallest, K closest points</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 215</span>
+            <span class="prob-chip prob-med">LC 973</span>
+            <span class="prob-chip prob-hard">LC 295</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P2 · Two Heaps (Median)</div>
+          <div class="pattern-when">Running median, sliding window median</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-hard">LC 295</span>
+            <span class="prob-chip prob-hard">LC 480</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P3 · K-way Merge</div>
+          <div class="pattern-when">Merge k sorted lists, kth smallest in matrix</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-hard">LC 23</span>
+            <span class="prob-chip prob-hard">LC 373</span>
+            <span class="prob-chip prob-hard">LC 378</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P4 · Task Scheduling with Heap</div>
+          <div class="pattern-when">CPU task scheduler, reorganize string</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 621</span>
+            <span class="prob-chip prob-med">LC 767</span>
+            <span class="prob-chip prob-hard">LC 1642</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- GREEDY -->
+    <div class="topic-card">
+      <div class="topic-card-header">
+        <div class="topic-icon" style="background:rgba(255,95,126,.1);color:var(--accent3)">⑪</div>
+        <div><div class="topic-card-title">Greedy</div><div class="topic-card-sub">4 patterns · ~25 problems</div></div>
+      </div>
+      <div class="patterns-list">
+
+        <div class="pattern-row">
+          <div class="pattern-name">P1 · Interval Greedy</div>
+          <div class="pattern-when">Activity selection, meeting rooms, non-overlap</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 435</span>
+            <span class="prob-chip prob-med">LC 452</span>
+            <span class="prob-chip prob-med">LC 646</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P2 · Jump Game Pattern</div>
+          <div class="pattern-when">Reach end, min jumps, max reach at each step</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 55</span>
+            <span class="prob-chip prob-med">LC 45</span>
+            <span class="prob-chip prob-hard">LC 1326</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P3 · Greedy + Sort</div>
+          <div class="pattern-when">Assign cookies, candy, partition labels</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-easy">LC 455</span>
+            <span class="prob-chip prob-hard">LC 135</span>
+            <span class="prob-chip prob-med">LC 763</span>
+          </div>
+        </div>
+
+        <div class="pattern-row">
+          <div class="pattern-name">P4 · Greedy on Strings</div>
+          <div class="pattern-when">Remove k digits, largest number, gas station</div>
+          <div class="problems-mini">
+            <span class="prob-chip prob-med">LC 402</span>
+            <span class="prob-chip prob-med">LC 179</span>
+            <span class="prob-chip prob-med">LC 134</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CS CORE SECTION -->
+<section class="section" id="cs">
+  <div class="section-header">
+    <div class="section-eyebrow" style="color:var(--muted)">STEP 03</div>
+    <div class="section-title">CS <span style="color:var(--muted)">CORE</span></div>
+    <div class="section-desc">OS, DBMS, Networks, OOP. Learn after DSA is solid. Each card shows time estimate + resources.</div>
+  </div>
+  <div class="cs-grid">
+
+    <div class="cs-card">
+      <div class="cs-card-header">
+        <div class="cs-card-title">Operating Systems</div>
+        <div class="cs-time">1 week</div>
+      </div>
+      <div class="cs-subtopics">
+        <span class="cs-sub">Processes & Threads</span>
+        <span class="cs-sub">Scheduling (FCFS, SJF, RR)</span>
+        <span class="cs-sub">Deadlock (Coffman)</span>
+        <span class="cs-sub">Memory (Paging, Segmentation)</span>
+        <span class="cs-sub">Virtual Memory</span>
+        <span class="cs-sub">Synchronization (Mutex, Semaphore)</span>
+        <span class="cs-sub">Producer-Consumer</span>
+        <span class="cs-sub">Dining Philosophers</span>
+      </div>
+      <div class="cs-resources">
+        <div class="cs-resource">GeeksForGeeks OS series</div>
+        <div class="cs-resource">Indialab OS playlist (YouTube)</div>
+        <div class="cs-resource">OSTEP (free online book)</div>
+      </div>
+    </div>
+
+    <div class="cs-card">
+      <div class="cs-card-header">
+        <div class="cs-card-title">Database Management Systems</div>
+        <div class="cs-time">1 week</div>
+      </div>
+      <div class="cs-subtopics">
+        <span class="cs-sub">ER Diagrams & Normalization</span>
+        <span class="cs-sub">SQL Queries & JOINs</span>
+        <span class="cs-sub">Indexes (B-Tree, Hash)</span>
+        <span class="cs-sub">ACID Properties</span>
+        <span class="cs-sub">Transactions & Isolation Levels</span>
+        <span class="cs-sub">Stored Procedures & Views</span>
+        <span class="cs-sub">NoSQL vs SQL</span>
+        <span class="cs-sub">B-Trees internal</span>
+      </div>
+      <div class="cs-resources">
+        <div class="cs-resource">GeeksForGeeks DBMS series</div>
+        <div class="cs-resource">Indiabix SQL practice</div>
+        <div class="cs-resource">CMU 15-445 (lectures on YouTube)</div>
+      </div>
+    </div>
+
+    <div class="cs-card">
+      <div class="cs-card-header">
+        <div class="cs-card-title">Computer Networks</div>
+        <div class="cs-time">1 week</div>
+      </div>
+      <div class="cs-subtopics">
+        <span class="cs-sub">OSI vs TCP/IP Model</span>
+        <span class="cs-sub">TCP vs UDP</span>
+        <span class="cs-sub">HTTP / HTTPS / HTTP2</span>
+        <span class="cs-sub">DNS Resolution</span>
+        <span class="cs-sub">IP, Subnetting, CIDR</span>
+        <span class="cs-sub">Routing Protocols (OSPF, BGP)</span>
+        <span class="cs-sub">TLS/SSL Handshake</span>
+        <span class="cs-sub">FTP, SMTP, POP3</span>
+      </div>
+      <div class="cs-resources">
+        <div class="cs-resource">GeeksForGeeks CN series</div>
+        <div class="cs-resource">Hussein Nasser (YouTube)</div>
+        <div class="cs-resource">Computer Networking: A Top-Down Approach</div>
+      </div>
+    </div>
+
+    <div class="cs-card">
+      <div class="cs-card-header">
+        <div class="cs-card-title">OOP & Design Patterns</div>
+        <div class="cs-time">5 days</div>
+      </div>
+      <div class="cs-subtopics">
+        <span class="cs-sub">4 Pillars (SOLID)</span>
+        <span class="cs-sub">Inheritance vs Composition</span>
+        <span class="cs-sub">Singleton, Factory, Builder</span>
+        <span class="cs-sub">Observer, Strategy, Command</span>
+        <span class="cs-sub">Decorator, Proxy, Adapter</span>
+        <span class="cs-sub">Gang of Four patterns</span>
+        <span class="cs-sub">UML Class Diagrams</span>
+      </div>
+      <div class="cs-resources">
+        <div class="cs-resource">Refactoring.guru (free, excellent)</div>
+        <div class="cs-resource">GeeksForGeeks Design Patterns</div>
+        <div class="cs-resource">Head First Design Patterns (book)</div>
+      </div>
+    </div>
+
+    <div class="cs-card">
+      <div class="cs-card-header">
+        <div class="cs-card-title">Aptitude, Logic & Reasoning</div>
+        <div class="cs-time">Ongoing</div>
+      </div>
+      <div class="cs-subtopics">
+        <span class="cs-sub">Combinatorics</span>
+        <span class="cs-sub">Probability</span>
+        <span class="cs-sub">Standard Puzzles (Bridges, Boats)</span>
+        <span class="cs-sub">Time & Work</span>
+        <span class="cs-sub">Horse Race Puzzles</span>
+        <span class="cs-sub">Identify Marble Weight</span>
+      </div>
+      <div class="cs-resources">
+        <div class="cs-resource">IndiaBix Aptitude</div>
+        <div class="cs-resource">GeeksForGeeks Puzzles</div>
+        <div class="cs-resource">Practice 10 min/day during DSA revision</div>
+      </div>
+    </div>
+
+    <div class="cs-card">
+      <div class="cs-card-header">
+        <div class="cs-card-title">Language Specifics (Java + C++)</div>
+        <div class="cs-time">10 hrs each</div>
+      </div>
+      <div class="cs-subtopics">
+        <span class="cs-sub">Java: JVM, ByteCode, GC</span>
+        <span class="cs-sub">Java: Collections Framework</span>
+        <span class="cs-sub">Java: Streams, Lambdas</span>
+        <span class="cs-sub">C++: Pointers, References</span>
+        <span class="cs-sub">C++: STL (map, set, vector)</span>
+        <span class="cs-sub">C++: Templates, Smart Pointers</span>
+        <span class="cs-sub">Common: HashMap, HashSet internals</span>
+      </div>
+      <div class="cs-resources">
+        <div class="cs-resource">GeeksForGeeks Java/C++ series</div>
+        <div class="cs-resource">cppreference.com (C++ STL)</div>
+      </div>
+    </div>
+
+    <div class="cs-card">
+      <div class="cs-card-header">
+        <div class="cs-card-title">Web Technologies</div>
+        <div class="cs-time">30 hrs</div>
+      </div>
+      <div class="cs-subtopics">
+        <span class="cs-sub">HTML5, CSS3, JS Basics</span>
+        <span class="cs-sub">REST vs SOAP vs GraphQL</span>
+        <span class="cs-sub">Sessions & Cookies</span>
+        <span class="cs-sub">Node.js Event Loop</span>
+        <span class="cs-sub">Angular / React / Vue basics</span>
+        <span class="cs-sub">Nginx config basics</span>
+        <span class="cs-sub">Apache Tomcat</span>
+      </div>
+      <div class="cs-resources">
+        <div class="cs-resource">MDN Web Docs</div>
+        <div class="cs-resource">FreeCodeCamp full stack</div>
+      </div>
+    </div>
+
+    <div class="cs-card">
+      <div class="cs-card-header">
+        <div class="cs-card-title">Behavioural + Soft Skills</div>
+        <div class="cs-time">2 hrs prep</div>
+      </div>
+      <div class="cs-subtopics">
+        <span class="cs-sub">STAR method answers</span>
+        <span class="cs-sub">Tell me about yourself</span>
+        <span class="cs-sub">Project walkthroughs</span>
+        <span class="cs-sub">Why this company</span>
+        <span class="cs-sub">Resume projects know-how</span>
+      </div>
+      <div class="cs-resources">
+        <div class="cs-resource">Glassdoor company questions</div>
+        <div class="cs-resource">GeeksForGeeks HR questions</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SYSTEM DESIGN -->
+<section class="section" id="sysdesign">
+  <div class="section-header">
+    <div class="section-eyebrow" style="color:var(--accent4)">STEP 04</div>
+    <div class="section-title">SYSTEM <span style="color:var(--accent4)">DESIGN</span></div>
+    <div class="section-desc">Learn foundations first, then case studies. After Week 7 of your dev path.</div>
+  </div>
+  <div class="sd-grid">
+
+    <div class="sd-card">
+      <div class="sd-card-header">
+        <div class="sd-card-title">Foundations</div>
+        <div class="cs-time" style="font-size:.68rem;color:var(--accent4);background:rgba(245,166,35,.08);padding:3px 10px;border-radius:100px">2 weeks</div>
+      </div>
+      <div class="sd-card-body">
+        <div class="sd-concept">CAP Theorem · ACID vs BASE · Horizontal vs Vertical Scaling · Load Balancing (Round Robin, Least Conn) · Caching (Redis, Memcached) · CDN · Rate Limiting algorithms · Consistent Hashing</div>
+        <div class="sd-resources">
+          <span class="sd-res">Designing Data-Intensive Apps</span>
+          <span class="sd-res">System Design Primer (GitHub)</span>
+          <span class="sd-res">ByteByteGo YouTube</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-card-header">
+        <div class="sd-card-title">Database Design</div>
+        <div class="cs-time" style="font-size:.68rem;color:var(--accent4);background:rgba(245,166,35,.08);padding:3px 10px;border-radius:100px">4 hrs</div>
+      </div>
+      <div class="sd-card-body">
+        <div class="sd-concept">SQL vs NoSQL tradeoffs · Sharding (Horizontal partitioning) · Replication (Master-Slave, Master-Master) · Indexing strategies · Data denormalization · Time-series DBs · Search engines (Elasticsearch)</div>
+        <div class="sd-resources">
+          <span class="sd-res">Designing Data-Intensive Apps Ch.5-6</span>
+          <span class="sd-res">Martin Kleppmann talk</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-card-header">
+        <div class="sd-card-title">Messaging & Queues</div>
+        <div class="cs-time" style="font-size:.68rem;color:var(--accent4);background:rgba(245,166,35,.08);padding:3px 10px;border-radius:100px">3 hrs</div>
+      </div>
+      <div class="sd-card-body">
+        <div class="sd-concept">Message queues vs event streams · Kafka architecture (partitions, offsets, consumer groups) · RabbitMQ AMQP · Pub/Sub pattern · At-least-once vs exactly-once delivery · Dead letter queues</div>
+        <div class="sd-resources">
+          <span class="sd-res">Confluent Kafka docs</span>
+          <span class="sd-res">Hussein Nasser YouTube</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-card-header">
+        <div class="sd-card-title">Case Study: URL Shortener</div>
+        <div class="cs-time" style="font-size:.68rem;color:var(--accent4);background:rgba(245,166,35,.08);padding:3px 10px;border-radius:100px">2 hrs</div>
+      </div>
+      <div class="sd-card-body">
+        <div class="sd-concept">Hash function selection · 301 vs 302 redirect · Base62 encoding · DB schema design · Cache-aside for hot URLs · Analytics pipeline · Rate limiting per user</div>
+        <div class="sd-resources">
+          <span class="sd-res">Your Phase 1 Capstone</span>
+          <span class="sd-res">ByteByteGo URL Shortener</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-card-header">
+        <div class="sd-card-title">Case Study: Twitter / Social Feed</div>
+        <div class="cs-time" style="font-size:.68rem;color:var(--accent4);background:rgba(245,166,35,.08);padding:3px 10px;border-radius:100px">3 hrs</div>
+      </div>
+      <div class="sd-card-body">
+        <div class="sd-concept">Fan-out on write vs read · Timeline generation · Celebrity problem · Notification system · Trending topics (sliding window counts) · Media storage (S3 + CDN) · Follower graph (Graph DB)</div>
+        <div class="sd-resources">
+          <span class="sd-res">Twitter engineering blog</span>
+          <span class="sd-res">Grokking System Design</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-card-header">
+        <div class="sd-card-title">Case Study: YouTube / Netflix</div>
+        <div c[<65;38;17Mlass="cs-time" style="font-size:.68rem;color:var(--accent4);background:rgba(245,166,35,.08);padding:3px 10px;border-radius:100px">3 hrs</div>
+      </div>
+      <div class="sd-card-body">
+        <div class="sd-concept">Video transcoding pipeline · Adaptive bitrate streaming (HLS/DASH) · CDN edge nodes · View count (approximate with HyperLogLog) · Recommendation system basics · Metadata vs blob storage separation</div>
+        <div class="sd-resources">
+          <span class="sd-res">Netflix Tech Blog</span>
+          <span class="sd-res">ByteByteGo YouTube Design</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-card-header">
+        <div class="sd-card-title">Case Study: Uber / Ride Sharing</div>
+        <div cla[<65;38;17M[<65;38;17Mss="cs-time" style="font-size:.68rem;color:var(--accent4);background:rgba(245,166,35,.08);padding:3px 10px;border-radius:100px">2 hrs</div>
+      </div>
+      <div class="sd-card-body">
+        <div class="sd-concept">Geospatial indexing (QuadTree, Geohash) · Driver location updates (WebSocket) · Matching algorithm · Surge pricing system · Trip state machine · Payment processing async</div>
+        <div class="sd-resources">
+          <span class="sd-res">Uber engineering blog</span>
+          <span class="sd-res">Grokking System Design</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-card-header">
+        <div class="sd-card-title">Case Study: Google / Web Search</div>
+        <div class="cs-time" style="font-siz[<65;38;17Me:.68rem;color:var(--accent4);background:rgba(245,166,35,.08);padding:3px 10px;border-radius:100px">3 hrs</div>
+      </div>
+      <div class="sd-card-body">
+        <div class="sd-concept">Web crawler architecture · Inverted index · PageRank basics · Query processing pipeline · Spell correction · Typeahead (Trie + frequency) · Distributed indexing (MapReduce)</div>
+        <div class="sd-resources">
+          <span class="sd-res">Google MapReduce paper</span>
+          <span class="sd-res">System Design Primer</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sd-card">
+      <div class="sd-card-header">
+        <div class="sd-card-title">Microservices & API Design</div>
+        <div class="cs-time" style="font-size:.68rem;color:var(--accent4);b[<65;38;17Mackground:rgba(245,166,35,.08);padding:3px 10px;border-radius:100px">3 hrs</div>
+      </div>
+      <div class="sd-card-body">
+        <div class="sd-concept">Monolith vs Microservices tradeoffs · API Gateway · Service discovery · Circuit breaker pattern · Saga pattern for distributed transactions · gRPC vs REST · GraphQL federation</div>
+        <div class="sd-resources">
+          <span class="sd-res">Sam Newman - Building Microservices</span>
+          <span class="sd-res">Martin Fowler blog</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ML SECTION -->
+<section class="section" id="ml">
+  <div class="section-header">
+    <div class="section-eyebrow" style="color:var(--accent3)">STEP 05</div>
+    <div c[<65;38;17M[<65;38;17Mlass="section-title">ML / DEEP <span style="color:var(--accent3)">LEARNING</span></div>
+    <div class="section-desc">Math first. Then classical ML. Then deep learning. Then transformers. Sequential. No shortcuts.</div>
+  </div>
+
+  <div class="ml-phase">
+    <div class="ml-phase-title">Phase A · Math Foundations</div>
+    <div class="ml-grid">
+
+      <div class="ml-card">
+        <div class="ml-card-title">Linear Algebra</div>
+        <div class="ml-card-time">⏱ 1 week · 3Blue1Brown Essence series</div>
+        <div class="ml-items">
+          <div class="ml-item">Vectors, dot product, cross product</div>
+          <div class="ml-item">Matrix multiplication & inverse</div>
+          <div class="ml-item">Eigenvalues & eigenvectors</div>
+          <div class="[<65;38;17Mml-item">SVD (Singular Value Decomposition)</div>
+          <div class="ml-item">Principal Component Analysis intuition</div>
+          <div class="ml-item">Norms (L1, L2)</div>
+        </div>
+      </div>
+
+      <div class="ml-card">
+        <div class="ml-card-title">Calculus & Optimization</div>
+        <div class="ml-card-time">⏱ 1 week · 3Blue1Brown Calculus series</div>
+        <div class="ml-items">
+          <div class="ml-item">Derivatives, chain rule, partial derivatives</div>
+          <div class="ml-item">Gradient, Jacobian, Hessian</div>
+          <div class="ml-item">Gradient descent (batch, SGD, mini-batch)</div>
+          <div class="ml-item">Learning rate, momentum, Adam optimizer</div>
+          <div class="ml-item">Convex vs non-convex fun[<65;38;17Mctions</div>
+          <div class="ml-item">Lagrange multipliers basics</div>
+        </div>
+      </div>
+
+      <div class="ml-card">
+        <div class="ml-card-title">Probability & Statistics</div>
+        <div class="ml-card-time">⏱ 1 week · StatQuest YouTube</div>
+        <div class="ml-items">
+          <div class="ml-item">Bayes theorem & conditional probability</div>
+          <div class="ml-item">Distributions (Normal, Bernoulli, Poisson)</div>
+          <div class="ml-item">MLE & MAP estimation</div>
+          <div class="ml-item">Expectation, variance, covariance</div>
+          <div class="ml-item">Hypothesis testing, p-value, t-test</div>
+          <div class="ml-item">Cross-entropy loss derivation</div>
+        </div>
+      </div>
+
+    </div>
+ [<65;38;17M </div>
+
+  <div class="ml-phase">
+    <div class="ml-phase-title">Phase B · Classical ML</div>
+    <div class="ml-grid">
+
+      <div class="ml-card">
+        <div class="ml-card-title">Supervised Learning</div>
+        <div class="ml-card-time">⏱ 1 week · Andrew Ng ML Course (Coursera)</div>
+        <div class="ml-items">
+          <div class="ml-item">Linear & Logistic Regression</div>
+          <div class="ml-item">Decision Trees & Random Forest</div>
+          <div class="ml-item">SVM & kernel trick</div>
+          <div class="ml-item">Gradient Boosting (XGBoost, LightGBM)</div>
+          <div class="ml-item">Bias-Variance tradeoff</div>
+          <div class="ml-item">Regularization (L1/L2, Dropout)</div>
+        </div>
+      </div>
+
+      <div class="ml-[<65;38;17M[<65;38;17Mcard">
+        <div class="ml-card-title">Unsupervised Learning</div>
+        <div class="ml-card-time">⏱ 4 days · StatQuest + Sklearn docs</div>
+        <div class="ml-items">
+          <div class="ml-item">K-Means clustering</div>
+          <div class="ml-item">Hierarchical clustering (dendrograms)</div>
+          <div class="ml-item">PCA for dimensionality reduction</div>
+          <div class="ml-item">t-SNE & UMAP visualization</div>
+          <div class="ml-item">Gaussian Mixture Models</div>
+          <div class="ml-item">Autoencoders</div>
+        </div>
+      </div>
+
+      <div class="ml-card">
+        <div class="ml-card-title">Model Evaluation</div>
+        <div class="ml-card-time">⏱ 2 days</div>
+        <div class="ml-items">
+          <div class[<65;38;17M[<65;38;17M="ml-item">Confusion matrix, Precision, Recall, F1</div>
+          <div class="ml-item">ROC-AUC curve</div>
+          <div class="ml-item">Cross-validation (k-fold, stratified)</div>
+          <div class="ml-item">Hyperparameter tuning (Grid, Random, Bayesian)</div>
+          <div class="ml-item">Train/Val/Test split strategy</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ml-phase">
+    <div class="ml-phase-title">Phase C · Deep Learning</div>
+    <div class="ml-grid">
+
+      <div class="ml-card">
+        <div class="ml-card-title">Neural Networks Fundamentals</div>
+        <div class="ml-card-time">⏱ 1 week · fast.ai Part 1</div>
+        <div class="ml-items">
+          <div class="ml-item">Perceptron, activation functions (ReLU, Sigm[<65;38;17M[<65;38;17Moid, Tanh)</div>
+          <div class="ml-item">Forward & backpropagation from scratch</div>
+          <div class="ml-item">Weight initialization (He, Xavier)</div>
+          <div class="ml-item">Batch Normalization</div>
+          <div class="ml-item">Dropout & regularization</div>
+          <div class="ml-item">Universal approximation theorem</div>
+        </div>
+      </div>
+
+      <div class="ml-card">
+        <div class="ml-card-title">CNNs (Computer Vision)</div>
+        <div class="ml-card-time">⏱ 1 week · CS231n Stanford</div>
+        <div class="ml-items">
+          <div class="ml-item">Convolution operation & kernels</div>
+          <div class="ml-item">Pooling (Max, Avg, Global)</div>
+          <div class="ml-item">VGG, ResNet, EfficientNet archit[<65;38;17M[<65;38;17Mectures</div>
+          <div class="ml-item">Transfer learning & fine-tuning</div>
+          <div class="ml-item">Object detection (YOLO, Faster R-CNN)</div>
+          <div class="ml-item">Semantic segmentation basics</div>
+        </div>
+      </div>
+
+      <div class="ml-card">
+        <div class="ml-card-title">RNNs / LSTMs / GRUs</div>
+        <div class="ml-card-time">⏱ 4 days · Andrej Karpathy blog</div>
+        <div class="ml-items">
+          <div class="ml-item">Vanishing gradient problem</div>
+          <div class="ml-item">LSTM gates (forget, input, output)</div>
+          <div class="ml-item">GRU architecture</div>
+          <div class="ml-item">Seq2Seq models</div>
+          <div class="ml-item">Attention mechanism (Bahdanau)</div>
+          <di[<65;38;17M[<65;38;17M[<65;38;17M[<65;38;17Mv class="ml-item">Beam search decoding</div>
+        </div>
+      </div>
+
+      <div class="ml-card">
+        <div class="ml-card-title">Transformers & Attention</div>
+        <div class="ml-card-time">⏱ 2 weeks · Andrej Karpathy nanoGPT</div>
+        <div class="ml-items">
+          <div class="ml-item">Self-attention (Query, Key, Value)</div>
+          <div class="ml-item">Multi-head attention</div>
+          <div class="ml-item">Positional encoding</div>
+          <div class="ml-item">Encoder-Decoder architecture</div>
+          <div class="ml-item">BERT (encoder-only) vs GPT (decoder-only)</div>
+          <div class="ml-item">Flash Attention, KV Cache</div>
+        </div>
+      </div>
+
+      <div class="ml-card">
+        <div class="ml-card-title">LLMs &[<65;38;17M[<65;38;17M Prompt Engineering</div>
+        <div class="ml-card-time">⏱ 1 week</div>
+        <div class="ml-items">
+          <div class="ml-item">Pretraining vs Fine-tuning vs RLHF</div>
+          <div class="ml-item">LoRA, QLoRA (parameter-efficient fine-tuning)</div>
+          <div class="ml-item">Tokenization (BPE, WordPiece)</div>
+          <div class="ml-item">Temperature, Top-K, Top-P sampling</div>
+          <div class="ml-item">System prompts & few-shot learning</div>
+          <div class="ml-item">RAG pipeline (connects to your Phase 3)</div>
+        </div>
+      </div>
+
+      <div class="ml-card">
+        <div class="ml-card-title">Generative Models</div>
+        <div class="ml-card-time">⏱ 1 week</div>
+        <div class="ml-items">
+          <div class="m[<65;38;17M[<65;38;17Ml-item">VAE (Variational Autoencoders)</div>
+          <div class="ml-item">GANs (Generator vs Discriminator)</div>
+          <div class="ml-item">Diffusion models (DDPM, score matching)</div>
+          <div class="ml-item">Stable Diffusion architecture</div>
+          <div class="ml-item">CLIP (vision + language)</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ml-phase">
+    <div class="ml-phase-title">Phase D · MLOps (connects to your Phase 5)</div>
+    <div class="ml-grid">
+
+      <div class="ml-card">
+        <div class="ml-card-title">ML Infrastructure</div>
+        <div class="ml-card-time">⏱ 1 week · Your Phase 5 dev path</div>
+        <div class="ml-items">
+          <div class="ml-item">Feature stores (Feast)</div>
+          <d[<65;38;17M[<65;38;17M[<65;38;17M[<65;38;17Miv class="ml-item">Experiment tracking (MLflow, W&B)</div>
+          <div class="ml-item">Model registry & versioning</div>
+          <div class="ml-item">Model serving (Triton, TorchServe)</div>
+          <div class="ml-item">Prometheus metrics for model latency</div>
+          <div class="ml-item">Data drift detection</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<div class="divider"></div>
+
+<!-- DEV PATH -->
+<section class="section" id="dev">
+  <div class="section-header">
+    <div class="section-eyebrow" style="color:var(--accent2)">PARALLEL</div>
+    <div class="section-title">DEV <span style="color:var(--accent2)">PATH</span></div>
+    <div class="section-desc">Run this in parallel with DSA. Currently at Week 3. Do not rush phases. Build the capstone before moving.</div>
+  </div>
+  <div class="track">
+
+    <div class="track-item active">
+      <div class="track-card">
+        <span class="track-num">W3</span>
+        <span class="track-name" style="color:var(--accent2)">NOW → NestJS + Prisma + Soft Deletes + Guards + Filters</span>
+        <span class="track-time">Week 3</span>
+        <span class="track-tag tag-dev">DEV</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">W4</span>
+        <span class="track-name">Error Handling — Result Pattern, Global Exception Filter</span>
+        <span class="track-time">Week 4</span>
+        <span class="track-tag tag-dev">DEV</span>
+      </div>
+    </div>
+
+    <div class=[<65;38;17M[<65;38;17M"track-item">
+      <div class="track-card">
+        <span class="track-num">W5</span>
+        <span class="track-name">Redis Caching — Cache-Aside, TTL, Profile Caching</span>
+        <span class="track-time">Week 5</span>
+        <span class="track-tag tag-dev">DEV</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">W6</span>
+        <span class="track-name">Rate Limiting — Sliding Window, Token Bucket, Middleware</span>
+        <span class="track-time">Week 6</span>
+        <span class="track-tag tag-dev">DEV</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">W7</span>
+        <span class="track-name">Nginx Load [<65;38;17M[<65;38;17M[<65;38;17M[<65;38;17MBalancer — 3 Node instances, reverse proxy</span>
+        <span class="track-time">Week 7</span>
+        <span class="track-tag tag-dev">DEV</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">W8</span>
+        <span class="track-name">CAPSTONE 1 — Scalable URL Shortener (10k req/sec)</span>
+        <span class="track-time">Week 8</span>
+        <span class="track-tag tag-dev">DEV</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">W9-12</span>
+        <span class="track-name">Rust — Ownership, Structs, Async Tokio, JSON Parser</span>
+        <span class="track-time">Month 3</span>
+        <span class="track-tag tag-[<65;38;17M[<65;38;17Mdev">DEV</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">W13-15</span>
+        <span class="track-name">Rust-TS Interop — napi-rs, FFI, Image Processing Service</span>
+        <span class="track-time">Month 4</span>
+        <span class="track-tag tag-dev">DEV</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">W16-21</span>
+        <span class="track-name">RAG — pgvector, Embeddings, Hybrid Search, Research Assistant</span>
+        <span class="track-time">Months 5-6</span>
+        <span class="track-tag tag-dev">DEV</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+     [<65;38;17M[<65;38;17M   <span class="track-num">W22-25</span>
+        <span class="track-name">Agents — Kafka, Workers, Function Calling, Video Transcriber</span>
+        <span class="track-time">Months 7-8</span>
+        <span class="track-tag tag-dev">DEV</span>
+      </div>
+    </div>
+
+    <div class="track-item">
+      <div class="track-card">
+        <span class="track-num">W26-32</span>
+        <span class="track-name">K8s + MLOps + Final Boss — Distributed AI Security Auditor</span>
+        <span class="track-time">Months 9-10</span>
+        <span class="track-tag tag-dev">DEV</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<footer>
+  <div style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--accent);font-weight:700;margin-botto[<65;38;17M[<65;38;17M[<65;38;17M[<65;38;17Mm:8px">THE GRIND BIBLE</div>
+  <div>Personal use only · Updated for current position: Week 3</div>
+  <div style="margin-top:6px;color:var(--border)">DSA → CS Core → System Design → ML/DL → Dev Path (parallel)</div>
+</footer>
+
+<script>
+// Active nav highlight on scroll
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 100) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+});
+
+// Animate cards on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+   [<65;38;17M[<65;38;17M if (e.isIntersecting) {
+      e.target.style.opacity = '1';
+      e.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.05 });
+
+document.querySelectorAll('.topic-card, .cs-card, .ml-card, .sd-card').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(16px)';
+  el.style.transition = 'opacity .4s ease, transform .4s ease';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
