@@ -1,9 +1,9 @@
-import type{JSONSchema,JSONValue,JSONObject,ValidationError,ValidationResult} from './types'
+import type{JSONSchema,JSONValue,ValidationError,ValidationResult} from './types.js'
 
 // will define a helper to convert a javascript value to a JSON Schema type name
 //in this the instance will be convered to the json type so that we can compare and validate later
 
-function getJSONType(instance:JSONValue):string{
+ function getJSONType(instance:JSONValue):string{
     if(instance===null){
         return 'null';
     }
@@ -28,7 +28,7 @@ function getJSONType(instance:JSONValue):string{
 }
 
 //this is the main function that actually does the valdation of the JSONSchema 
-function validate(schema:JSONSchema,instance:JSONValue,path:string):ValidationResult{
+function validate(schema:JSONSchema,instance:JSONValue,path:string = '$'):ValidationResult{
     const errors:ValidationError[] = [];
     //check the boolean cases of the schema
     if(schema===true){
@@ -82,3 +82,4 @@ function validate(schema:JSONSchema,instance:JSONValue,path:string):ValidationRe
     };
 
 }
+export { validate };

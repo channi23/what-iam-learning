@@ -1,9 +1,12 @@
 {
   "name": "json-schema-validator-fs",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "ts-node src/playground.ts",
+    "build": "tsc",
+    "test": "echo \"No tests yet\""
   },
   "keywords": [],
   "author": "",
