@@ -21,3 +21,23 @@
  * Return final validation result
 
  ### (So for now, i will stick to this and plan to write the code around it, so changes are needed in the code)
+
+# Planned File Structure
+src/
+    validate.ts -> which accepts the schema and the instance to validate, does not contain keyword specific logic
+    types.ts -> JSONValue, JSONSchema,ValidationError....etc
+context/
+    validationContext.ts -> Stores validation state: current instace path, current schema path, root path, selected draft, collected errors
+drafts/
+    draft2020_12.ts -> Registers the keyword handlers supported by this(draft) for example type->Validation type, const->validationConst, enum -> validationEnum
+keywords/
+    type.ts ->validates the type keyword
+    const.ts -> validate exact equality between schema const value and instance
+    enum.ts  -> checks if instance matches atleast one value from enum
+    required.ts -> checks required objects property
+    properties.ts -> Applies subschema to object properties
+utils/
+    getJSONType.ts -> converts js values to JSON schema types
+    deepEqual.ts -> compares JSON values deeply for const and enum
+    jsonPointer.ts -> builds paths like $.user.name or later #/properties/name.
+
