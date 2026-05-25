@@ -1,31 +1,10 @@
 import type{JSONSchema,JSONValue,ValidationError,ValidationResult} from './types.js'
+import { getJSONType } from './utils/getJSONType.js';
+import { draft2020_12 } from './drafts/draft2020_12.js';
+
 
 // will define a helper to convert a javascript value to a JSON Schema type name
 //in this the instance will be convered to the json type so that we can compare and validate later
-
- function getJSONType(instance:JSONValue):string{
-    if(instance===null){
-        return 'null';
-    }
-    if(Array.isArray(instance)){
-        return 'array';
-    }
-    if(typeof instance === 'object'){
-        return 'object';
-    }
-    if(typeof instance === 'string'){
-        return 'string';
-    }
-    if(typeof instance ==='boolean'){
-        return 'boolean';
-    }
-    if(typeof instance ==='number'){
-        return Number.isInteger(instance)?'integer':'number';
-    }
-
-    throw new Error('Unsupported JSON Value');
-
-}
 
 //this is the main function that actually does the valdation of the JSONSchema 
 function validate(schema:JSONSchema,instance:JSONValue,path:string = '$'):ValidationResult{
@@ -53,29 +32,28 @@ function validate(schema:JSONSchema,instance:JSONValue,path:string = '$'):Valida
         throw new Error('Schema must be boolean or an object');
     }
 
+    const draft = draft2020_12;
 
-    if(schema.type!==undefined){
-        const allowedTypes = Array.isArray(schema.type)?schema.type:[schema.type]; //can include multiple types , so wrapping the thing in arr, if it is not an arr
-        const actualType = getJSONType(instance);
+    for(const key of Object.keys(schema)){
+        if(key==="type" && schema.type!== undefined){
+        const isValid = draft.type(schema.type,instance);
 
-        const isValidType = allowedTypes.some((expectedType)=>{ //.some checks if atleast element matches the condition
-            if(actualType===expectedType){
-                return true;
-            }
-            if(expectedType==='number'&&actualType==='integer'){
-                return true;
-            }
-            return false;
-        });
+        if(!isValid){
+            const allowedTypes = Array.isArray(schema.type)?schema.type:[schema.type];
+            const actualType = getJSONType(instance);
 
-        if(!isValidType){
             errors.push({
                 path,
-                keyword:'type',
-                message:`expected type ${allowedTypes.join(' or ')}, but got ${actualType}`,
+                keyword:"type",
+                message:`expected type ${allowedTypes.join(" or ")}, but got ${actualType}`,
             });
         }
+        
     }
+}
+
+
+    
     return{
         valid:errors.length===0,
         errors,
